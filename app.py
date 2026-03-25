@@ -1,56 +1,47 @@
-from flask import Flask, render_template, request
-import os
+from flask import Flask, render_template, request, jsonify
 
+# Import your modules
 from models.crop_model import predict_crop
 from models.fertilizer import recommend_fertilizer
-from models.disease_model import detect_disease
 from utils.weather import get_weather
-from utils.ndvi import calculate_ndvi
+from flask_cors import CORS
 
 app = Flask(__name__)
-UPLOAD_FOLDER = "static/uploads"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+CORS(app)
+app = Flask(__name__)
 
+# 🔹 Home route (VERY IMPORTANT)
 @app.route('/')
 def home():
     return render_template("index.html")
 
+# 🔹 Prediction API
 @app.route('/predict', methods=['POST'])
 def predict():
-    N = int(request.form['N'])
-    P = int(request.form['P'])
-    K = int(request.form['K'])
-    ph = float(request.form['ph'])
-    rainfall = float(request.form['rainfall'])
+    data = request.get_json()
 
-    city = request.form['city']
+    N = int(data['N'])
+    P = int(data['P'])
+    K = int(data['K'])
+    ph = float(data['ph'])
+    rainfall = float(data['rainfall'])
+    city = data['city']
 
     weather = get_weather(city)
     temp = weather["temperature"]
     humidity = weather["humidity"]
 
-    # Crop prediction
     crop = predict_crop([N, P, K, temp, humidity, ph, rainfall])
-
-    # Fertilizer
     fertilizer = recommend_fertilizer(N, P, K)
 
-    # Image upload
-    file = request.files['image']
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-    file.save(filepath)
+    return jsonify({
+        "crop": crop,
+        "fertilizer": fertilizer,
+        "disease": "Healthy",
+        "temperature": temp,
+        "humidity": humidity
+    })
 
-    disease = detect_disease(filepath)
-
-    ndvi = calculate_ndvi()
-
-    return f"""
-    🌾 Crop: {crop} <br>
-    🧪 Fertilizer: {fertilizer} <br>
-    📷 Disease: {disease} <br>
-    🌦️ Weather: Temp {temp}°C, Humidity {humidity}% <br>
-    📡 {ndvi}
-    """
-
-if __name__ == "__main__":
-    app.run(debug=True)
+# 🔹 Run app
+    if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
