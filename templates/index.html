@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <button onclick="getPrediction()">Get AI Prediction</button>
     <style>
         /* ===== VARIABLES ===== */
         * {
@@ -825,7 +825,38 @@
             border-radius: 20px;
             text-align: center;
         }
+        .ai-btn {
+    background: linear-gradient(135deg, #2E7D32, #43A047);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 40px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 18px rgba(46, 125, 50, 0.25);
+}
 
+/* Hover effect */
+.ai-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(46, 125, 50, 0.35);
+    background: linear-gradient(135deg, #1B5E20, #2E7D32);
+}
+
+/* Click effect */
+.ai-btn:active {
+    transform: scale(0.97);
+}
+
+/* Icon styling */
+.ai-btn i {
+    font-size: 1.2rem;
+}
         /* ===== MOBILE RESPONSIVE ===== */
         @media (max-width: 800px) {
             .sidebar { 
@@ -1537,6 +1568,35 @@
         document.getElementById('chatInput')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') sendMessage();
         });
+        async function getPrediction() {
+    const data = {
+        N: 90,
+        P: 40,
+        K: 40,
+        ph: 6.5,
+        rainfall: 200,
+        city: "Chennai"
+    };
+
+    const response = await fetch("/predict", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    console.log(result);
+
+    // You can show result in UI
+    alert(`
+Crop: ${result.crop}
+Fertilizer: ${result.fertilizer}
+Disease: ${result.disease}
+`);
+}
     </script>
 </body>
 </html>
